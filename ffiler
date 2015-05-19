@@ -22,40 +22,37 @@
 # SOFTWARE.
 ###############################################################################
 
-set -e
-set -u
+set -eu
 
-readonly PROGNAME=$(basename "$0")
-readonly PROGDIR=$(readlink -m $(dirname "$0"))
-readonly ARGS="$*"
 
-function bomb() {
+bomb() {
   echo "BOMBS AWAY: $1" >&2
   exit 1;
 }
 
-function usage() {
+usage() {
   printf "Usage: %s [options] file1 file2 fileN\n" "$0"
   printf "Options:\n"
-  printf "   %-25s %-50s\n" '-y'   'File into a year folder only (eg, 2015/)'
-  printf "   %-25s %-50s\n" '-m'   'File by year and month (eg, 2015/07-Jul/)'
-  printf "   %-25s %-50s\n" '-d'   'File by year, month and day (eg, 2015/07-Jul/19/)'
-  printf "   %-25s %-50s\n" '-s X' 'File by first X chars of the md5 hash of the file name (faster than -S)'
-  printf "   %-25s %-50s\n" '-S X' 'File by first X chars of the md5 hash of the file contents (slow)'
-  printf "   %-25s %-50s\n" '-f X' 'File by first X chars of file name (eg, -f3 a/f/i/afile.txt)'
-  printf "   %-25s %-50s\n" '-v'   'Verbose output'
-  printf "   %-25s %-50s\n" '-n'   'Dry run only (do not move files)'
+  printf '   %-25s %-50s\n' \
+    '-y'   'File into a year folder only (eg, 2015/)' \
+    '-m'   'File by year and month (eg, 2015/07-Jul/)' \
+    '-d'   'File by year, month and day (eg, 2015/07-Jul/19/)' \
+    '-s X' 'File by first X chars of the md5 hash of the file name (faster than -S)' \
+    '-S X' 'File by first X chars of the md5 hash of the file contents (slow)' \
+    '-f X' 'File by first X chars of file name (eg, -f3 a/f/i/afile.txt)' \
+    '-v'   'Verbose output' \
+    '-n'   'Dry run only (do not move files)'
 }
 
-function dirsplitfilename() {
-  string="$1"
+dirsplitfilename() {
+  string=$1
   depth=$2
   output=
   for ((X=0; X < $depth; X++)) ; do
-    char="${string:$X:1}"
+    char=${string:$X:1}
     # replace non-alphanumeric with an underscore
     if [[ ! $char =~ [A-Za-z0-9] ]] ; then
-      char='_'
+      char=_
     fi
     output="${output}${char}/"
   done
@@ -70,15 +67,15 @@ declare dry_run=
 ### fetch our cmdline options
 while getopts ":hymdvns:S:f:" opt; do
   case $opt in
-    y)  fileby='y'  ;;
-    m)  fileby='m'  ;;
-    d)  fileby='d'  ;;
-    s)  fileby='s'
-        filedepth="$OPTARG"  ;;
-    S)  fileby='S'
-        filedepth="$OPTARG"  ;;
-    f)  fileby='f'
-        filedepth="$OPTARG"  ;;
+    y)  fileby=y  ;;
+    m)  fileby=m  ;;
+    d)  fileby=d  ;;
+    s)  fileby=s
+        filedepth=$OPTARG  ;;
+    S)  fileby=S
+        filedepth=$OPTARG  ;;
+    f)  fileby=f
+        filedepth=$OPTARG  ;;
     n)  dry_run=1
         verbose=1   ;;
     v)  verbose=1   ;;
@@ -102,53 +99,53 @@ shift $((OPTIND-1))
 # bomb unless the user has told us how to sort the file(s)
 [[ -z "$fileby" ]] && { bomb "Undefined sort method"; }
 
-for X in $@ ; do
+for X in "$@"; do
   fname="${1:-}"
   shift
 
   # validate the given user input
-  [[ -z "${fname}" ]]   && { usage; exit -1; }
-  [[ ! -f "${fname}" ]] && { bomb "File not found: ${fname}"; }
+  [[ -z $fname ]]   && { usage; exit -1; }
+  [[ ! -f $fname ]] && { bomb "File not found: $fname"; }
 
-  base_fname="$(basename "${fname}")"
+  base_fname=${fname##*/}
 
   # get the file modified timestamp in epoch format
-  mod_tz_epoch=$(stat --format=%Y "${fname}")
+  mod_tz_epoch=$(stat --format=%Y "$fname")
 
   # work out the destination path for this file
-  declare destdir=''
+  declare destdir=
   case $fileby in
     y)
-      destdir="$(date --date=@${mod_tz_epoch} +%Y/)"
+      destdir=$(date --date=@$mod_tz_epoch +%Y/)
       ;;
     m)
-      destdir="$(date --date=@${mod_tz_epoch} +%Y/%m-%b/)"
+      destdir=$(date --date=@$mod_tz_epoch +%Y/%m-%b/)
       ;;
     d)
-      destdir="$(date --date=@${mod_tz_epoch} +%Y/%m-%b/%d/)"
+      destdir=$(date --date=@$mod_tz_epoch +%Y/%m-%b/%d/)
       ;;
     s)
-      md5hash="$(echo -n "$base_fname" | md5sum | awk '{ print $1 }')"
-      destdir="$(dirsplitfilename "$md5hash" $filedepth)"
+      md5hash=$(printf '%s' "$base_fname" | md5sum | awk '{ print $1 }')
+      destdir=$(dirsplitfilename "$md5hash" $filedepth)
       ;;
     S)
       md5hash="$(md5sum "$fname" | awk '{ print $1 }')"
       destdir="$(dirsplitfilename "$md5hash" $filedepth)"
       ;;
     f)
-      destdir="$(dirsplitfilename "$base_fname" $filedepth)"
+      destdir=$(dirsplitfilename "$base_fname" $filedepth)
       ;;
   esac
 
-  if [[ ! -d "$destdir" ]] ; then
-    [[ -n $verbose ]] && printf "Create destination: %s\n" "${destdir}"
-    [[ -z $dry_run ]] && mkdir -p "${destdir}"
+  if [[ ! -d $destdir ]] ; then
+    [[ -n $verbose ]] && printf 'Create destination: %s\n' "$destdir"
+    [[ -z $dry_run ]] && mkdir -p "$destdir"
   fi
 
   # give feedback
-  [[ -n $verbose ]] && printf "%s => %s\n" "$fname" "${destdir}"
+  [[ -n $verbose ]] && printf '%s => %s\n' "$fname" "$destdir"
   # do the move
-  [[ -z $dry_run ]] && mv "$fname" "${destdir}"
+  [[ -z $dry_run ]] && mv "$fname" "$destdir"
 done
 
 exit 0
