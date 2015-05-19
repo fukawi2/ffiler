@@ -54,7 +54,7 @@ function dirsplitfilename() {
   output=
   for ((X=0; X < $depth; X++)) ; do
     char="${string:$X:1}"
-    # replace spaces etc with an underscore
+    # replace non-alphanumeric with an underscore
     if [[ ! $char =~ [A-Za-z0-9] ]] ; then
       char='_'
     fi
