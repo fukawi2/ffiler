@@ -80,7 +80,8 @@ while getopts ":hymdvns:S:f:" opt; do
         filedepth="$OPTARG"  ;;
     f)  fileby='f'
         filedepth="$OPTARG"  ;;
-    n)  dry_run=1   ;;
+    n)  dry_run=1
+        verbose=1   ;;
     v)  verbose=1   ;;
     h)
       usage
