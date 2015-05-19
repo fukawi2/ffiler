@@ -29,18 +29,12 @@ readonly PROGNAME=$(basename "$0")
 readonly PROGDIR=$(readlink -m $(dirname "$0"))
 readonly ARGS="$*"
 
-function bomb {
+function bomb() {
   echo "BOMBS AWAY: $1" >&2
   exit 1;
 }
-function warn() {
-  echo "WARNING: $1" >&2
-}
-function dbg {
-  echo "DEBUG: $1" >&2
-}
 
-function usage {
+function usage() {
   printf "Usage: %s [options] file1 file2 fileN\n" "$0"
   printf "Options:\n"
   printf "   %-25s %-50s\n" '-y'   'File into a year folder only (eg, 2015/)'
