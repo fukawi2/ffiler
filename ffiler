@@ -128,12 +128,12 @@ for X in $@ ; do
       destdir="$(date --date=@${mod_tz_epoch} +%Y/%m-%b/%d/)"
       ;;
     s)
-      md5hash="$(echo -n $base_fname | md5sum | awk '{ print $1 }')"
-      destdir="$(dirsplitfilename $md5hash $filedepth)"
+      md5hash="$(echo -n "$base_fname" | md5sum | awk '{ print $1 }')"
+      destdir="$(dirsplitfilename "$md5hash" $filedepth)"
       ;;
     S)
-      md5hash="$(md5sum $fname | awk '{ print $1 }')"
-      destdir="$(dirsplitfilename $md5hash $filedepth)"
+      md5hash="$(md5sum "$fname" | awk '{ print $1 }')"
+      destdir="$(dirsplitfilename "$md5hash" $filedepth)"
       ;;
     f)
       destdir="$(dirsplitfilename "$base_fname" $filedepth)"
