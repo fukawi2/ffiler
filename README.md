@@ -58,17 +58,22 @@ Similar to filing by hash, but don't bother to hash anything first (just take
 the first X characters of the filename).
 
 ### Example
-An example tree (directories only) filing to a depth of 2 characters:
+An example tree (including files this time!) filing to a depth of 2 characters:
 
 ```
 ├── e
-│   ├── x
-│   └── l
+│   ├── l
+│   │   └── elephant
+│   └── x
+│       └── example
 ├── f
 │   ├── f
+│   │   └── ffiler
 │   └── i
+│       └── file
 └── t
     └── e
+            └── test
 ```
 
 ### Syntax
