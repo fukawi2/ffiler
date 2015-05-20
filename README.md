@@ -82,3 +82,15 @@ An example tree (including files this time!) filing to a depth of 2 characters:
 * Sort to 1-level: `ffiler -f1 tosort/*`
 * Sort to 2-levels: `ffiler -f2 tosort/*`
 * Sort to 8-levels: `ffiler -f8 tosort/*`
+
+## Action
+
+ffiler can move (default), copy, symlink or hardlink files into the destination
+tree. The flags for these are:
+
+```
+-M  Move
+-C  Copy
+-L  Symbolic Link
+-H  Hard Link
+```
