@@ -109,6 +109,8 @@ for X in "$@" ; do
 
   # validate the given user input
   [[ -z "${fname}" ]]   && { usage; exit -1; }
+  # TODO: recurse into directories if given by user
+  #[[ -d "${fname}" ]] && recurse_this_directory_please
   [[ ! -f "${fname}" ]] && { bomb "File not found: ${fname}"; }
 
   # strip any leading path from the file name
