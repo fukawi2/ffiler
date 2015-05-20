@@ -33,18 +33,20 @@ usage() {
   printf 'Usage: %s [options] file1 file2 fileN\n' "$0"
   printf 'Options:\n'
   printf '   %-25s %-50s\n' \
-    '-y'   'File into a year folder only (eg, 2015/)' \
-    '-m'   'File by year and month (eg, 2015/07-Jul/)'  \
-    '-d'   'File by year, month and day (eg, 2015/07-Jul/19/)'  \
-    '-s X' 'File by first X chars of the md5 hash of the file name (faster than -S)'  \
-    '-S X' 'File by first X chars of the md5 hash of the file contents (slow)'  \
-    '-f X' 'File by first X chars of file name (eg, -f3 a/f/i/afile.txt)' \
+    '-s X' 'Filing structure to use. X can be one of:' \
+    ''     'm = File by modified timestamp of file' \
+    ''     's = File by first X chars of the md5 hash of the file name (faster than -S)' \
+    ''     'S = File by first X chars of the md5 hash of the file contents (slow)' \
+    ''     'f = File by first X chars of file name (eg, -f3 a/f/i/afile.txt)' \
+    ''     't = File by mime-type of file (eg, image/jpeg)' \
+    '-d NUM' 'Depth of tree structure (see documentation)' \
     '-M'   'Move files into tree structure (This is the default)'  \
     '-C'   'Copy files into tree structure'  \
     '-L'   'Symbolic link files into tree structure'  \
     '-H'   'Hard link files into tree structure'  \
     '-v'   'Verbose output' \
-    '-n'   'Dry run only (do not move files)'
+    '-n'   'Dry run only (do not touch files; implies -v)' \
+    '-h'   'This help'
 }
 
 dirsplitfilename() {
@@ -62,24 +64,17 @@ dirsplitfilename() {
   echo "$output"
 }
 
-declare fileby=
+declare fileby=undefined
 declare filedepth=
 declare verbose=
 declare dry_run=
 declare action=m
 
 ### fetch our cmdline options
-while getopts ":hymdvns:S:f:MCLH" opt; do
+while getopts ":hs:d:MCLHvn" opt; do
   case $opt in
-    y)  fileby=y  ;;
-    m)  fileby=m  ;;
-    d)  fileby=d  ;;
-    s)  fileby=s
-        filedepth=$OPTARG  ;;
-    S)  fileby=S
-        filedepth=$OPTARG  ;;
-    f)  fileby=f
-        filedepth=$OPTARG  ;;
+    s)  fileby=$OPTARG    ;;
+    d)  filedepth=$OPTARG ;;
     n)  dry_run=1
         verbose=1   ;;
     v)  verbose=1   ;;
@@ -87,25 +82,26 @@ while getopts ":hymdvns:S:f:MCLH" opt; do
     C)  action=c    ;;  # action == copy
     L)  action=l    ;;  # action == sym-link
     H)  action=h    ;;  # action == hard-link
-    h)
-      usage
-      exit 0
-      ;;
-    \?)
-      echo "ERROR: Invalid option: -$OPTARG" >&2
-      usage
-      exit 1
-      ;;
-    :)
-      echo "ERROR: Option -$OPTARG requires an argument." >&2
-      exit 1
-      ;;
+    h)  usage
+        exit 0      ;;
+    \?) echo "ERROR: Invalid option: -$OPTARG" >&2
+        usage
+        exit 1      ;;
+    :)  echo "ERROR: Option -$OPTARG requires an argument." >&2
+        exit 1      ;;
     esac
 done
 shift $((OPTIND-1))
 
-# bomb unless the user has told us how to sort the file(s)
-[[ -z "$fileby" ]] && { bomb "Undefined sort method"; }
+# validate user input
+[[ ! $fileby =~ ^[msSft]$ ]] && { bomb "Invalid filing method: $fileby"; }
+if [[ $fileby == 'm' ]] ; then
+  # 'depth' is the timestamp granularity: ymdHMS
+  [[ ! $filedepth =~ ^[ymdHMS]$ ]] && { bomb "Invalid tree depth: $filedepth"; }
+else
+  # 'depth' is the a number
+  [[ ! $filedepth =~ ^[0-9]+$ ]] && { bomb "Invalid tree depth: $filedepth"; }
+fi
 
 for X in "$@" ; do
   fname="${1:-}"
@@ -127,9 +123,15 @@ for X in "$@" ; do
   # work out the destination path for this file
   declare destdir=''
   case $fileby in
-    y) destdir=$(date --date=@${mod_tz_epoch} +%Y/)           ;;
-    m) destdir=$(date --date=@${mod_tz_epoch} +%Y/%m-%b/)     ;;
-    d) destdir=$(date --date=@${mod_tz_epoch} +%Y/%m-%b/%d/)  ;;
+    m)
+      case $filedepth in
+        y) destdir=$(date --date=@${mod_tz_epoch} +%Y/)                   ;;
+        m) destdir=$(date --date=@${mod_tz_epoch} +%Y/%m-%b/)             ;;
+        d) destdir=$(date --date=@${mod_tz_epoch} +%Y/%m-%b/%d/)          ;;
+        H) destdir=$(date --date=@${mod_tz_epoch} +%Y/%m-%b/%d/%H/)       ;;
+        M) destdir=$(date --date=@${mod_tz_epoch} +%Y/%m-%b/%d/%H/%M/)    ;;
+        S) destdir=$(date --date=@${mod_tz_epoch} +%Y/%m-%b/%d/%H/%M/%S)  ;;
+      esac ;;
     s) md5hash=$(printf '%s' "$base_fname" | md5sum | awk '{ print $1 }')
        destdir=$(dirsplitfilename "$md5hash" $filedepth)      ;;
     S) md5hash=$(md5sum "$fname" | awk '{ print $1 }')
