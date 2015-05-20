@@ -64,8 +64,8 @@ dirsplitfilename() {
   echo "$output"
 }
 
-declare fileby=undefined
-declare filedepth=
+declare file_method=undefined
+declare file_depth=
 declare verbose=
 declare dry_run=
 declare action=m
@@ -73,34 +73,37 @@ declare action=m
 ### fetch our cmdline options
 while getopts ":hs:d:MCLHvn" opt; do
   case $opt in
-    s)  fileby=$OPTARG    ;;
-    d)  filedepth=$OPTARG ;;
+    s)  file_method=$OPTARG ;;
+    d)  file_depth=$OPTARG  ;;
+    M)  action=m            ;;  # action == move
+    C)  action=c            ;;  # action == copy
+    L)  action=l            ;;  # action == sym-link
+    H)  action=h            ;;  # action == hard-link
     n)  dry_run=1
-        verbose=1   ;;
-    v)  verbose=1   ;;
-    M)  action=m    ;;  # action == move
-    C)  action=c    ;;  # action == copy
-    L)  action=l    ;;  # action == sym-link
-    H)  action=h    ;;  # action == hard-link
+        verbose=1           ;;
+    v)  verbose=1           ;;
     h)  usage
-        exit 0      ;;
+        exit 0              ;;
     \?) echo "ERROR: Invalid option: -$OPTARG" >&2
         usage
-        exit 1      ;;
+        exit 1              ;;
     :)  echo "ERROR: Option -$OPTARG requires an argument." >&2
-        exit 1      ;;
+        exit 1              ;;
     esac
 done
 shift $((OPTIND-1))
 
+# make these vars readonly to prevent accidentally changing them beyond this point
+readonly file_method file_depth action dry_run verbose
+
 # validate user input
-[[ ! $fileby =~ ^[msSft]$ ]] && { bomb "Invalid filing method: $fileby"; }
-if [[ $fileby == 'm' ]] ; then
-  # 'depth' is the timestamp granularity: ymdHMS
-  [[ ! $filedepth =~ ^[ymdHMS]$ ]] && { bomb "Invalid tree depth: $filedepth"; }
-else
-  # 'depth' is the a number
-  [[ ! $filedepth =~ ^[0-9]+$ ]] && { bomb "Invalid tree depth: $filedepth"; }
+[[ ! $file_method =~ ^[msSft]$ ]] && { bomb "Invalid filing method: $file_method"; }
+if [[ $file_method == 'm' ]] ; then
+  # depth is the timestamp granularity: ymdHMS
+  [[ ! $file_depth =~ ^[ymdHMS]$ ]] && { bomb "Invalid tree depth: $file_depth"; }
+elif [[ $file_method =~ ^[Ssf]$ ]] ; then
+  # depth is a number
+  [[ ! $file_depth =~ ^[0-9]+$ ]] && { bomb "Invalid tree depth: $file_depth"; }
 fi
 
 for X in "$@" ; do
@@ -124,9 +127,9 @@ for X in "$@" ; do
 
   # work out the destination path for this file
   declare destdir=''
-  case $fileby in
+  case $file_method in
     m)
-      case $filedepth in
+      case $file_depth in
         y) destdir=$(date --date=@${mod_tz_epoch} +%Y/)                   ;;
         m) destdir=$(date --date=@${mod_tz_epoch} +%Y/%m-%b/)             ;;
         d) destdir=$(date --date=@${mod_tz_epoch} +%Y/%m-%b/%d/)          ;;
@@ -135,10 +138,10 @@ for X in "$@" ; do
         S) destdir=$(date --date=@${mod_tz_epoch} +%Y/%m-%b/%d/%H/%M/%S)  ;;
       esac ;;
     s) md5hash=$(printf '%s' "$base_fname" | md5sum | awk '{ print $1 }')
-       destdir=$(dirsplitfilename "$md5hash" $filedepth)      ;;
+       destdir=$(dirsplitfilename "$md5hash" $file_depth)      ;;
     S) md5hash=$(md5sum "$fname" | awk '{ print $1 }')
-       destdir=$(dirsplitfilename "$md5hash" $filedepth)      ;;
-    f) destdir=$(dirsplitfilename "$base_fname" $filedepth)   ;;
+       destdir=$(dirsplitfilename "$md5hash" $file_depth)      ;;
+    f) destdir=$(dirsplitfilename "$base_fname" $file_depth)   ;;
     t) destdir=$(file --brief --mime-type "$fname")           ;;
   esac
 
