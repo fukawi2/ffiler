@@ -93,6 +93,8 @@ Valid depths depend on the filing method.
 For string-based methods (MD5 hashes or filenames) the depth is the number of
 characters (positive integer) to build the tree with.
 
+*Example:* `ffiler -ss -d2` _(Sort to the second character as above)_
+
 For timestamp-based methods (modified time) the depth is the timestamp
 granularity:
 
@@ -102,6 +104,8 @@ granularity:
 - `H` = Hour   (eg `2010/01-Jan/15/18/`)
 - `M` = Minute (eg `2010/01-Jan/15/18/20/`)
 - `S` = Second (eg `2010/01-Jan/15/18/20/34/`)
+
+*Example:* `ffiler -sm -dm` _(Sort to the "month" level)_
 
 ## Action
 
