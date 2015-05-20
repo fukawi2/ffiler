@@ -5,11 +5,16 @@ file prefix etc
 
 # Usage
 
-## By Modified Timestamp
-This will sort files into a tree structure based on the modified timestamp of
-the file.
+## Filing Method
+There are various filing tree structures available:
 
-### Example
+- Modified Timestamp
+- MD5 hash of file name
+- MD5 hash of file contents (slower)
+- Leading characters of file name
+- MIME type of file
+
+### Modified Timestamp
 An example tree (directories only) filing to a depth of 2 (YYYY/Month/):
 
 ```
@@ -27,16 +32,7 @@ An example tree (directories only) filing to a depth of 2 (YYYY/Month/):
     └── 05-May
  ```
 
-### Syntax
-* Sort to 1-level (YYYY/): `ffiler -y tosort/*`
-* Sort to 2-levels (YYYY/Month/): `ffiler -m tosort/*`
-* Sort to 3-levels (YYYY/Month/Day/): `ffiler -d tosort/*`
-
-## By MD5 Hashes
-Hash either the file *name* or the file *content* (slower), then place the file
-into a tree based on the number of characters at the start of the hash.
-
-### Example
+### By MD5 Hash
 An example tree (directories only) filing to a depth of 2 characters:
 
 ```
@@ -51,16 +47,11 @@ An example tree (directories only) filing to a depth of 2 characters:
     └── 7
 ```
 
-### Syntax
-* Sort using the MD5 hash of the file *name*: `ffiler -s3 tosort/*`
-* Sort using the MD5 hash of the file *content*: `ffiler -S3 tosort/*`
-
-## By Filename
+### By Filename
 Similar to filing by hash, but don't bother to hash anything first (just take
 the first X characters of the filename).
 
-### Example
-An example tree (including files this time!) filing to a depth of 2 characters:
+An example tree (including files) filing to a depth of 2 characters:
 
 ```
 ├── e
@@ -78,10 +69,39 @@ An example tree (including files this time!) filing to a depth of 2 characters:
             └── test
 ```
 
-### Syntax
-* Sort to 1-level: `ffiler -f1 tosort/*`
-* Sort to 2-levels: `ffiler -f2 tosort/*`
-* Sort to 8-levels: `ffiler -f8 tosort/*`
+### Mime type
+
+An example tree (including files):
+
+```
+├── application
+│   └── postscript
+│       └── mylogo.eps
+└── image
+    ├── jpeg
+    │   ├── mylogo.jpg
+    │   ├── yourlogo.jpg
+    │   └── herlogo.jpeg
+    └── png
+        └── hislogo.png
+```
+
+## Filing Depth
+Most of the filing methods require a depth for the resulting tree structure.
+Valid depths depend on the filing method.
+
+For string-based methods (MD5 hashes or filenames) the depth is the number of
+characters (positive integer) to build the tree with.
+
+For timestamp-based methods (modified time) the depth is the timestamp
+granularity:
+
+- `y` = Year   (eg `2010/`)
+- `m` = Month  (eg `2010/01-Jan/`)
+- `d` = Day    (eg `2010/01-Jan/15/`)
+- `H` = Hour   (eg `2010/01-Jan/15/18/`)
+- `M` = Minute (eg `2010/01-Jan/15/18/20/`)
+- `S` = Second (eg `2010/01-Jan/15/18/20/34/`)
 
 ## Action
 

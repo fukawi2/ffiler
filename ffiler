@@ -137,6 +137,7 @@ for X in "$@" ; do
     S) md5hash=$(md5sum "$fname" | awk '{ print $1 }')
        destdir=$(dirsplitfilename "$md5hash" $filedepth)      ;;
     f) destdir=$(dirsplitfilename "$base_fname" $filedepth)   ;;
+    t) destdir=$(file --brief --mime-type "$fname")           ;;
   esac
 
   if [[ ! -d "$destdir" ]] ; then
