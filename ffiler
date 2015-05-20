@@ -31,6 +31,8 @@ bomb() {
 
 usage() {
   printf 'Usage: %s [options] file1 file2 fileN\n' "$0"
+  printf 'File filer; sort files into a structured directory tree.\n'
+  printf 'Example: %s -sm -dm file.txt\n\n' "$0"
   printf 'Options:\n'
   printf '   %-10s %-50s\n' \
     '-s X' 'Filing structure to use. X can be one of:' \
