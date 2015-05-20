@@ -32,7 +32,7 @@ bomb() {
 usage() {
   printf 'Usage: %s [options] file1 file2 fileN\n' "$0"
   printf 'Options:\n'
-  printf '   %-25s %-50s\n' \
+  printf '   %-10s %-50s\n' \
     '-s X' 'Filing structure to use. X can be one of:' \
     ''     'm = File by modified timestamp of file' \
     ''     's = File by first X chars of the md5 hash of the file name (faster than -S)' \
