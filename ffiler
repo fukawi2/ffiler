@@ -122,7 +122,7 @@ for X in "$@" ; do
   base_fname=${fname##*/}
 
   # find the canonical path for the file
-  canon_fname=$(readlink --canonicalize $fname)
+  canon_fname=$(readlink --canonicalize "$fname")
 
   # get the file modified timestamp in epoch format
   mod_tz_epoch=$(stat --format=%Y "$fname")
