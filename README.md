@@ -118,3 +118,9 @@ tree. The flags for these are:
 -L  Symbolic Link
 -H  Hard Link
 ```
+
+# Installation
+
+## Arch Linux
+
+PKGBUILD is in the AUR: https://aur.archlinux.org/packages/ffiler-git/
