@@ -5,3 +5,5 @@ all: install
 
 install:
 	install -D -m 0755 $(PROJECT).sh $(DESTDIR)$(PREFIX)/bin/$(PROJECT)
+	install -o0 -g0 -m0644 $(PROJECT).7.man /usr/local/man/man7/$(PROJECT).7.man
+	gzip /usr/local/man/man7/$(PROJECT).7.man

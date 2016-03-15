@@ -1,0 +1,160 @@
+.Dd Mar 15, 2016
+.Os Linux
+.Dt "ffiler man page"
+.Sh NAME
+.Nm ffiler
+.Nd Sort files into structured directory tree
+.Sh SYNOPSIS
+.Nm
+.Op Fl MCLHvnh
+.Op Fl s Ar filing_structure
+.Op Fl d Ar depth
+.Pa file1 file2 fileN
+
+.Sh DESCRIPTION
+File Filer sorts files into structured directory tree. Tree can be structured based on various designs such as date (file modification time), file hash, file prefix etc
+
+.Sh EXAMPLES
+.Nm
+.Fl sm 
+.Fl dm
+.Pa files*.txt
+
+.Sh OPTIONS
+
+.Bl -hang -offset indent
+.It Fl s Op X
+Filing structure to use. X can be one of:
+
+.D1 Li m = File by modified timestamp of file            
+.D1 Li s = File by first X chars of the md5 hash of the file name (faster than -S)
+.D1 Li S = File by first X chars of the md5 hash of the file contents (slow)
+.D1 Li f = File by first X chars of file name (eg, -f3 a/f/i/afile.txt)
+.D1 Li t = File by mime-type of file (eg, image/jpeg)
+
+.It Fl d Op DEPTH
+Depth of tree structure (see below)
+.It Fl M
+Move files into tree structure (This is the default)
+.It Fl C
+Copy files into tree structure
+.It Fl L
+Symbolic link files into tree structure
+.It Fl H
+Hard link files into tree structure
+.It Fl v
+Verbose output
+.It Fl n
+Dry run only (do not touch files; implies -v)
+.It Fl h
+Show help
+.El
+
+.Sh FILING STRUCTURE
+There are various filing tree structures available:
+
+.Bl -bullet
+.It
+Modified Timestamp
+.It
+MD5 hash of file name
+.It
+MD5 hash of file contents (slower)
+.It
+Leading characters of file name
+.It
+MIME type of file
+.It
+Modified Timestamp
+.El
+
+An example tree (directories only) filing to a depth of 2 (YYYY/Month/):
+
+.Ss By MD5 Hash
+
+An example tree (directories only) filing to a depth of 2 characters:
+
+.Bd -literal
+├── 2
+│   ├── 2
+│   └── b
+├── a
+│   ├── 1
+│   └── e
+└── e
+    ├── 1
+    └── 7
+.Ed
+
+.Ss By Filename
+
+Similar to filing by hash, but don't bother to hash anything first (just take the first X characters of the filename).
+
+An example tree (including files) filing to a depth of 2 characters:
+
+.Bd -literal
+├── e
+│   ├── l
+│   │   └── elephant
+│   └── x
+│       └── example
+├── f
+│   ├── f
+│   │   └── ffiler
+│   └── i
+│       └── file
+└── t
+    └── e
+        └── test
+.Ed
+
+.Ss Mime type
+
+An example tree (including files):
+
+.Bd -literal
+├── application
+│   └── postscript
+│       └── mylogo.eps
+└── image
+    ├── jpeg
+    │   ├── mylogo.jpg
+    │   ├── yourlogo.jpg
+    │   └── herlogo.jpeg
+    └── png
+        └── hislogo.png
+.Ed
+
+.Sh FILING DEPTH
+Most of the filing methods require a depth for the resulting tree structure. Valid depths depend on the filing method.
+
+For string-based methods (MD5 hashes or filenames) the depth is the number of characters (positive integer) to build the tree with.
+
+Example to sort to the second character as above:
+.Nm
+.Fl ss
+.Fl d2
+.Pa *.txt
+
+For timestamp-based methods (modified time) the depth is the timestamp granularity:
+
+.Bd -literal
+y = Year (eg 2010/)
+m = Month (eg 2010/01-Jan/)
+d = Day (eg 2010/01-Jan/15/)
+H = Hour (eg 2010/01-Jan/15/18/)
+M = Minute (eg 2010/01-Jan/15/18/20/)
+S = Second (eg 2010/01-Jan/15/18/20/34/)
+.Ed
+
+Example to sort to the "month" level:
+.Nm
+.Fl sm
+.Fl dm
+.Pa *.txt
+
+.Sh BUGS
+No known bugs.
+
+.Sh AUTHOR
+.An "Phillip Smith" (fukawi2Agmail.com)
