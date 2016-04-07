@@ -42,6 +42,7 @@ usage() {
     ''     'f = File by first X chars of file name (eg, -f3 a/f/i/afile.txt)' \
     ''     't = File by mime-type of file (eg, image/jpeg)' \
     '-d NUM' 'Depth of tree structure (see documentation)' \
+    '-o /path/' 'Output directory for sorted files (eg /mnt/archive/' \
     '-M'   'Move files into tree structure (This is the default)'  \
     '-C'   'Copy files into tree structure'  \
     '-L'   'Symbolic link files into tree structure'  \
@@ -65,18 +66,31 @@ dirsplitfilename() {
   done
   echo "$output"
 }
+appendtrailingslash() {
+  str="$1"
+
+  # dont append a slash to a blank string; very important!!!!
+  [[ -z "$str" ]] && return
+
+  length=${#str}
+  last_char=${str:length-1:1}
+  [[ $last_char != "/" ]] && str="$str/"
+  echo "$str"
+}
 
 declare file_method=undefined
 declare file_depth=
+declare output_path=
 declare verbose=
 declare dry_run=
 declare action=m
 
 ### fetch our cmdline options
-while getopts ":hs:d:MCLHvn" opt; do
+while getopts ":hs:d:o:MCLHvn" opt; do
   case $opt in
     s)  file_method=$OPTARG ;;
     d)  file_depth=$OPTARG  ;;
+    o)  output_path="$(appendtrailingslash "$OPTARG")" ;;
     M)  action=m            ;;  # action == move
     C)  action=c            ;;  # action == copy
     L)  action=l            ;;  # action == sym-link
@@ -96,7 +110,7 @@ done
 shift $((OPTIND-1))
 
 # make these vars readonly to prevent accidentally changing them beyond this point
-readonly file_method file_depth action dry_run verbose
+readonly file_method file_depth output_path action dry_run verbose
 
 # validate user input
 [[ ! $file_method =~ ^[msSft]$ ]] && { bomb "Invalid filing method: $file_method"; }
@@ -106,6 +120,12 @@ if [[ $file_method == 'm' ]] ; then
 elif [[ $file_method =~ ^[Ssf]$ ]] ; then
   # depth is a number
   [[ ! $file_depth =~ ^[0-9]+$ ]] && { bomb "Invalid tree depth: $file_depth"; }
+fi
+
+#validate $output_path
+if [[ -n "$output_path" ]] ; then
+  [[ -n $verbose ]] && printf 'Output path: %s\n' "$output_path"
+  [[ ! -d "$output_path" ]] && mkdir -p "$output_path"
 fi
 
 for X in "$@" ; do
@@ -147,6 +167,8 @@ for X in "$@" ; do
     t) destdir=$(file --brief --mime-type "$fname")           ;;
   esac
 
+  # prepend $output_path so we don't write to the cwd
+  destdir="$(printf '%s%s' "$output_path" "$destdir")"
   if [[ ! -d "$destdir" ]] ; then
     [[ -n $verbose ]] && printf 'Create destination: %s\n' "$destdir"
     [[ -z $dry_run ]] && mkdir -p "$destdir"
