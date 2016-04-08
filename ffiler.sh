@@ -43,6 +43,7 @@ usage() {
     ''     't = File by mime-type of file (eg, image/jpeg)' \
     '-d NUM' 'Depth of tree structure (see documentation)' \
     '-o /path/' 'Output directory for sorted files (eg /mnt/archive/' \
+    '-r'   'Recurse into directories' \
     '-M'   'Move files into tree structure (This is the default)'  \
     '-C'   'Copy files into tree structure'  \
     '-L'   'Symbolic link files into tree structure'  \
@@ -151,13 +152,15 @@ main() {
   declare file_depth=
   declare output_path=
   declare action=m
+  declare recurse=
 
   ### fetch our cmdline options
-  while getopts ":hs:d:o:MCLHvn" opt; do
+  while getopts ":hs:d:o:rMCLHvn" opt; do
     case $opt in
       s)  file_method=$OPTARG ;;
       d)  file_depth=$OPTARG  ;;
       o)  output_path="$(appendtrailingslash "$OPTARG")" ;;
+      r)  recurse=yes         ;;  # recurse into directories
       M)  action=m            ;;  # action == move
       C)  action=c            ;;  # action == copy
       L)  action=l            ;;  # action == sym-link
@@ -195,16 +198,34 @@ main() {
     [[ ! -d "$output_path" ]] && mkdir -p "$output_path"
   fi
 
+  # loop over the remaining command line arguments as files/directories
   for X in "$@" ; do
     fname="${1:-}"
     shift
 
-    # validate the given user input
-    [[ -z "${fname}" ]]   && { usage; exit -1; }
-    #if [[ -d "${fname}" ]] && recurse_this_directory_please
-    [[ ! -f "${fname}" ]] && { bomb "File not found: ${fname}"; }
+    # is it blank?
+    [[ -z "$fname" ]]   && { usage; exit -1; }
 
-    process_file "$fname" "$file_method" "$file_depth" "$action" "$output_path"
+    # is it a directory?
+    if [[ -d "$fname" ]] ; then
+      if [[ -z "$recurse" ]] ; then
+        # this is a directory, but user has not asked us to recurse
+        printf 'Skipping directory: %s\n' "$fname"
+        continue
+      else
+        # a directory, and the user wants us to recurse!
+        # TODO: this is not proper recursion, but I'm in a rush today
+        # this needs to actually descend into child directories
+        for C in $(ls "$fname/") ; do
+          [[ ! -f "$C" ]] && continue
+          process_file "$C" "$file_method" "$file_depth" "$action" "$output_path"
+        done
+      fi
+    else
+      # is it a file?
+      [[ ! -f "$fname" ]] && { bomb "File not found: $fname"; }
+      process_file "$fname" "$file_method" "$file_depth" "$action" "$output_path"
+    fi
   done
 }
 

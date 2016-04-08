@@ -6,7 +6,7 @@
 .Nd Sort files into structured directory tree
 .Sh SYNOPSIS
 .Nm
-.Op Fl MCLHvnh
+.Op Fl rMCLHvnh
 .Op Fl s Ar filing_structure
 .Op Fl d Ar depth
 .Op Fl o Ar /output/path/
@@ -37,6 +37,8 @@ Filing structure to use. X can be one of:
 Depth of tree structure (see below)
 .It Fl o Op /output/path
 Destination path to move/copy/link input files to
+.It Fl r
+Recurse into directories.
 .It Fl M
 Move files into tree structure (This is the default)
 .It Fl C
