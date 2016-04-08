@@ -122,7 +122,7 @@ elif [[ $file_method =~ ^[Ssf]$ ]] ; then
   [[ ! $file_depth =~ ^[0-9]+$ ]] && { bomb "Invalid tree depth: $file_depth"; }
 fi
 
-#validate $output_path
+# validate $output_path
 if [[ -n "$output_path" ]] ; then
   [[ -n $verbose ]] && printf 'Output path: %s\n' "$output_path"
   [[ ! -d "$output_path" ]] && mkdir -p "$output_path"
