@@ -216,6 +216,7 @@ main() {
         # a directory, and the user wants us to recurse!
         # TODO: this is not proper recursion, but I'm in a rush today
         # this needs to actually descend into child directories
+        cd "$fname"
         for C in $(ls "$fname/") ; do
           [[ ! -f "$C" ]] && continue
           process_file "$C" "$file_method" "$file_depth" "$action" "$output_path"
