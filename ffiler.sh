@@ -216,6 +216,10 @@ main() {
         # a directory, and the user wants us to recurse!
         # TODO: this is not proper recursion, but I'm in a rush today
         # this needs to actually descend into child directories
+        # also, we need to consider that the output directory may
+        # be a child of the source directory, in which case doing proper
+        # recursion could end up re-processing files that are already
+        # sorted in previous runs. dont know how to deal with that.
         cd "$fname"
         for C in $(ls "$fname/") ; do
           [[ ! -f "$C" ]] && continue
